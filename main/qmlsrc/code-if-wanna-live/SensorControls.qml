@@ -4,14 +4,17 @@ Item {
     property int controlsSize: 100
     property int controlsMargin: 10
     property color controlsColor: "blue"
+    property int controlsLeftMargin: 300
 
     Rectangle {
         id: up
         width: controlsSize
         height: controlsSize
-        color: controlsColor
+        color: "#0500ff"
         x: controlsSize + controlsMargin
         y: 0
+        anchors.left: parent.left
+        anchors.leftMargin: controlsLeftMargin
 
         Text {
             anchors.centerIn: parent

@@ -4,16 +4,39 @@ import "MapObjects.js" as MapObjects
 
 Item {
     id: container
-    width: 300
-    height: 300
+    width: 500
+    height: 500
     focus: true
+
 
     property int direction_up: 0
     property int direction_right: 1
     property int direction_down: 2
     property int direction_left: 3
 
+    property int playerId: -1
+    property MapObject player
+    property int pastWindowX: width
+    property int pastWindowY: height
+
     property int pressedKeysCount: 0
+
+    onWidthChanged: {
+        for (var index = 0; index < MapObjects.size(); index++) {
+             var mapObject = MapObjects.get(index);
+             mapObject.x += (width - pastWindowX)/2;
+        }
+        pastWindowX = width;
+    }
+
+    onHeightChanged: {
+        for (var index = 0; index < MapObjects.size(); index++) {
+             var mapObject = MapObjects.get(index);
+             mapObject.y += (height - pastWindowY)/2;
+        }
+        pastWindowY = height;
+    }
+
 
     SensorControls {
     }
@@ -81,19 +104,61 @@ Item {
     QmlMapInterface {
         id: qmlMapInterface
         objectName: "qmlMapInterface"
+
+
+        property int playerX: -1
+        property int playerY: -1
+
+
         onMapSetUp: {
             setUpGraphicalMap();
+            //Find player
+            for (var index = 0; index < qmlMapInterface.getObjectsCount(); index++) {
+                var mapObject = qmlMapInterface.getMapObject(index);
+                if (mapObject.id === qmlMapInterface.getPlayerId()) {
+                    playerX = mapObject.x;
+                    playerY = mapObject.y;
+                    playerId = mapObject.id;
+                }
+            }
+
+            for (index = 0; index < MapObjects.size(); index++) {
+                 mapObject = MapObjects.get(index);
+                 mapObject.x += (container.width/2 - playerX );
+                 mapObject.y += (container.height/2 - playerY);
+            }
+
         }
 
         onObjectChangedPosition: {
-            for (var index = 0; index < MapObjects.size(); index++) {
-                var mapObject = MapObjects.get(index);
+            if (id === qmlMapInterface.getPlayerId()) {
+                for (var index = 0; index < MapObjects.size(); index++) {
+                    var mapObject = MapObjects.get(index);
+                    var xSmeshNow = x - playerX, ySmeshNow = y - playerY;
+                    if (mapObject.mapObjectId !== id) {
+                        //Move Right/Left
+                        if(xSmeshNow != 0){
+                            if(x > playerX){
+                                mapObject.x -= 1;
+                            }
+                            else{
+                                mapObject.x += 1;
+                            }
+                        }
 
-                if (mapObject.mapObjectId === id) {
-                    mapObject.x = x;
-                    mapObject.y = y;
-                    return;
+                        //Move Up/Down
+                        if(ySmeshNow != 0){
+                            if(y > playerY){
+                                mapObject.y -= 1;
+                            }
+                            else{
+                                mapObject.y += 1;
+                            }
+                        }
+                    }
                 }
+                playerX = x;
+                playerY = y;
             }
         }
     }
